@@ -4,15 +4,75 @@ import * as path from "node:path";
 
 import { ConfigNotFoundError, InvalidInputError } from "./errors";
 
+/**
+ * Validated, normalized set of inputs for the ProtocolCanary GitHub Action,
+ * produced by {@link getInputs} and consumed by downstream execution modules
+ * (`main.ts`, `canary.ts`, `runner.ts`).
+ *
+ * Fields typed as `T | undefined` (`protocol`, `config`, `network`, `rpcUrl`)
+ * are optional Action inputs and resolve to `undefined` when omitted or left
+ * blank in the workflow configuration. All remaining fields (`fixturesDir`,
+ * `version`, `uploadReport`, `annotations`, `timeoutMinutes`) are guaranteed to
+ * be present because {@link getInputs} applies their documented defaults before
+ * validation.
+ */
 export interface ActionInputs {
+  /**
+   * Target Stellar protocol version to test against (parsed as a non-negative
+   * integer, e.g. `28`). Optional: `undefined` when the `protocol` input is
+   * unset or empty.
+   */
   readonly protocol: number | undefined;
+
+  /**
+   * Absolute filesystem path (resolved against `process.cwd()`) to an existing
+   * regular configuration file. Optional: `undefined` when the `config` input
+   * is unset or empty.
+   */
   readonly config: string | undefined;
+
+  /**
+   * Target Stellar network identifier (trimmed non-empty string). Optional:
+   * `undefined` when the `network` input is unset or empty.
+   */
   readonly network: string | undefined;
+
+  /**
+   * Validated Soroban RPC endpoint URL (`https://`, or `http://` for
+   * `localhost` / `127.0.0.1`). Optional: `undefined` when the `rpc-url` input
+   * is unset or empty.
+   */
   readonly rpcUrl: string | undefined;
+
+  /**
+   * Directory containing test fixtures passed to the CLI. Always present;
+   * defaults to `"fixtures"` when `fixtures-dir` is unset or empty.
+   */
   readonly fixturesDir: string;
+
+  /**
+   * Normalized semantic version (`x.y.z`, with any leading `"v"` stripped) of
+   * the `stellar-canary` CLI binary to install and run. Always present;
+   * defaults to `"0.1.1"` when `version` is unset or empty.
+   */
   readonly version: string;
+
+  /**
+   * Whether to upload the generated canary report artifact. Always present;
+   * defaults to `true` when `upload-report` is unset or empty.
+   */
   readonly uploadReport: boolean;
+
+  /**
+   * Whether to emit GitHub Actions workflow annotations for findings. Always
+   * present; defaults to `true` when `annotations` is unset or empty.
+   */
   readonly annotations: boolean;
+
+  /**
+   * Maximum execution time in minutes (validated as a positive integer). Always
+   * present; defaults to `15` when `timeout-minutes` is unset or empty.
+   */
   readonly timeoutMinutes: number;
 }
 
